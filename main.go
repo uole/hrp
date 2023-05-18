@@ -41,6 +41,7 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	log.Printf("reverse proxy url: %s\n", target)
 	reverseProxy := &httputil.ReverseProxy{}
 	reverseProxy.Rewrite = func(request *httputil.ProxyRequest) {
 		request.SetURL(uri)

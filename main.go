@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -11,16 +12,18 @@ import (
 )
 
 var (
+	debugFlag  = flag.Bool("debug", false, "Enable debug")
 	portFlag   = flag.Int("port", 0, "Listen port")
 	targetFlag = flag.String("target", "", "Target rewrite host")
 )
 
 func main() {
 	var (
-		port   int
-		err    error
-		uri    *url.URL
-		target string
+		port    int
+		err     error
+		uri     *url.URL
+		target  string
+		address string
 	)
 	flag.Parse()
 	port = *portFlag
@@ -41,8 +44,13 @@ func main() {
 	reverseProxy := &httputil.ReverseProxy{}
 	reverseProxy.Rewrite = func(request *httputil.ProxyRequest) {
 		request.SetURL(uri)
+		if *debugFlag {
+			log.Printf("rewrite url %s -> %s", request.In.URL.String(), request.Out.URL.String())
+		}
 	}
-	if err = http.ListenAndServe(":"+strconv.Itoa(port), reverseProxy); err != nil {
+	address = fmt.Sprintf(":%d", port)
+	log.Printf("http listen on %s\n", address)
+	if err = http.ListenAndServe(address, reverseProxy); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
